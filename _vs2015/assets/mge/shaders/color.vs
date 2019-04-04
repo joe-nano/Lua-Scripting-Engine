@@ -6,10 +6,11 @@ in vec3 vertex;
 in vec3 normal;
 in vec2 uv;
 
-uniform	mat4 	projectionMatrix;
-uniform	mat4 	viewMatrix;
-uniform	mat4 	modelMatrix;
+uniform	mat4 matrixProjection;
+uniform	mat4 matrixView;
+uniform	mat4 matrixModel;
 
-void main( void ){
-    	gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertex, 1.f);
+void main(void) {
+
+    gl_Position = matrixProjection * matrixView * matrixModel * vec4(vertex, 1.f);
 }
