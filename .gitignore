@@ -1,0 +1,45 @@
+# Debug builds
+[Bb]uild/
+[Bb]uilds/
+cmake-build*/
+build/
+debug_dynamic_build
+debug_dynamic_exe
+release_dynamic_build
+release_dynamic_exe
+
+# IDE Stuff
+.idea
+.vs
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
