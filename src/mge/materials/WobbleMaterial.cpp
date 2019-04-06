@@ -43,6 +43,7 @@ void WobbleMaterial::render(World* pWorld, Mesh* pMesh, const glm::mat4& pModelM
     glUniformMatrix4fv ( _shader->getUniformLocation("projectionMatrix"),   1, GL_FALSE, glm::value_ptr(pProjectionMatrix));
     glUniformMatrix4fv ( _shader->getUniformLocation("viewMatrix"),         1, GL_FALSE, glm::value_ptr(pViewMatrix));
     glUniformMatrix4fv ( _shader->getUniformLocation("modelMatrix"),        1, GL_FALSE, glm::value_ptr(pModelMatrix));
+    glUniformMatrix4fv ( _shader->getUniformLocation("mvpMatrix"),        1, GL_FALSE, glm::value_ptr(pProjectionMatrix * pViewMatrix * pModelMatrix));
 
     glUniform1f(_shader->getUniformLocation("timeNow"), clock() / 1000.0f);
     glUniform1f(_shader->getUniformLocation("timeScale"), 5);

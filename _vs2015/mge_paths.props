@@ -5,10 +5,10 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\3DRenderingLibraries\visualstudio2017_v3_2017_2018\vs_extended\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\3DRenderingLibraries\visualstudio2017_v3_2017_2018\vs_extended\include;C:\Program Files (x86)\Lua\5.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-	   <AdditionalLibraryDirectories>..\3DRenderingLibraries\visualstudio2017_v3_2017_2018\vs_extended\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+	   <AdditionalLibraryDirectories>..\3DRenderingLibraries\visualstudio2017_v3_2017_2018\vs_extended\lib;C:\Program Files (x86)\Lua\5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

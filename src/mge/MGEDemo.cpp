@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <lua.hpp>
 
 #include "glm.hpp"
 
@@ -73,6 +74,37 @@ void MGEDemo::_initializeScene()
     terrainMaterial->setDiffuseTexture(Texture::load(config::MGE_TEXTURE_PATH + "diffuse3.jpg"));
     terrainMaterial->setDiffuseTexture(Texture::load(config::MGE_TEXTURE_PATH + "diffuse4.jpg"));
     terrainMaterial->setMaxHeight(20);
+
+    /*lua_State* lua = luaL_newstate();
+    luaL_openlibs(lua);
+    luaL_loadfile(lua, (config::MGE_SCRIPT_PATH + "scene.lua").c_str());
+
+    lua_call(lua, 0, 0);
+
+    lua_getglobal(lua, "grade");
+    if (lua_isnumber(lua, -1)) {
+        int grade = lua_tonumber(lua, -1);
+        printf("The grade is %d\n", grade);
+    }
+
+    lua_getglobal(lua, "MouseClick");
+    lua_pushinteger(lua, 20);
+    lua_pushinteger(lua, 30);
+    lua_pushstring(lua, "Middle Button");
+
+    printf("Check stack: %d\n", lua_checkstack(lua, 1));
+
+    lua_call(lua, 3, 0);
+
+    int returnValue = lua_tonumber(lua, -1);
+    lua_pop(lua, 1);
+    printf("Return is: %d\n", returnValue);
+
+    lua_pushstring(lua, "1");
+    lua_setglobal(lua, "input");
+    lua_call(lua, 0, 0);
+
+    lua_close(lua); */
 
     /*GameObject* cameraNew = new GameObject("camera");
     _world->add(cameraNew);

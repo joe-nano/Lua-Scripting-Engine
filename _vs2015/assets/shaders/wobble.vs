@@ -2,25 +2,20 @@
 
 in vec3 vertex;
 in vec3 normal;
-in vec2 uv;
+in vec3 uv;
 
-uniform	mat4 mvpMatrix;
-uniform float time;
+uniform mat4 mvpMatrix;
+
+uniform float timeNow;
 
 uniform float timeScale;
-uniform float phaseOffsetPerUnitDistance;
-uniform float wobbleMultiplierMin;
-uniform float wobbleMultiplierMax;
-
-out vec2 fUV;
-out float wobbleFactor; // from -1 to 1. 0 is no wobble. 1 is max wobble outward, -1 is max wobble inward
+uniform float amplitude;
+uniform float wobbleMinThickness;
+uniform float wobbleMaxThickness;
 
 void main() {
 
-    float distance = vertex.y;
-    wobbleFactor = sin(time * timeScale + distance * phaseOffsetPerUnitDistance);
-
-    vec3 position = vertex * mix(wobbleMultiplierMin, wobbleMultiplierMax, smoothstep(-1, 1, wobbleFactor));
-    gl_Position = mvpMatrix * vec4(position, 1);
-    fUV = uv;
+ float wobbleFactor = sin(timeNow * timeScale + vertex.y * amplitude);
+ vec3 position = vertex * mix(wobbleMinThickness, wobbleMaxThickness, smoothstep(-1, 1, wobbleFactor));
+ gl_Position = mvpMatrix * vec4(position, 1.f);
 }

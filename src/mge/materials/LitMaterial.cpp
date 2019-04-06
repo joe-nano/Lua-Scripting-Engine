@@ -58,11 +58,11 @@ void LitMaterial::render(World* pWorld, Mesh* pMesh, const glm::mat4& pModelMatr
     glUniform3fv(_shader->getUniformLocation("specularColor"), 1, glm::value_ptr(_specularColor));
 
     //pass in a precalculate mvp matrix (see texture material for the opposite)
-    glUniformMatrix4fv(_shader->getUniformLocation("projectionMatrix"), 1, GL_FALSE, glm::value_ptr(pProjectionMatrix));
-    glUniformMatrix4fv(_shader->getUniformLocation("viewMatrix"), 1, GL_FALSE, glm::value_ptr(pViewMatrix));
+    glUniformMatrix4fv(_shader->getUniformLocation("projectionViewMatrix"), 1, GL_FALSE, glm::value_ptr(pProjectionMatrix * pViewMatrix));
     glUniformMatrix4fv(_shader->getUniformLocation("modelMatrix"), 1, GL_FALSE, glm::value_ptr(pModelMatrix));
+    glUniformMatrix3fv(_shader->getUniformLocation("worldMatrix"), 1, GL_FALSE, glm::value_ptr(glm::mat3(glm::transpose(glm::inverse(pModelMatrix)))));
 
-    glUniform3fv(_shader->getUniformLocation("cameraPos"), 1, glm::value_ptr(pWorld->getMainCamera()->getLocalPosition()));
+    glUniform3fv(_shader->getUniformLocation("cameraPosition"), 1, glm::value_ptr(pWorld->getMainCamera()->getLocalPosition()));
 
     int directionalLightsCount  = 0;
     int pointLightsCount        = 0;
@@ -77,6 +77,9 @@ void LitMaterial::render(World* pWorld, Mesh* pMesh, const glm::mat4& pModelMatr
             {
                 directionalLightsCount++;
 
+                if (directionalLightsCount >= MAX_NUM_DIRECTIONAL_LIGHTS)
+                    break;
+
                 glUniform3fv(_lightUniformLocations.directionalLights[directionalLightsCount - 1].direction, 1, glm::value_ptr(glm::normalize(glm::vec3(light->getWorldTransform()[2]))));
                 glUniform3fv(_lightUniformLocations.directionalLights[directionalLightsCount - 1].color, 1, glm::value_ptr(light->color * light->intensity));
                 glUniform3fv(_lightUniformLocations.directionalLights[directionalLightsCount - 1].ambientColor, 1, glm::value_ptr(light->ambientColor * light->intensity));
@@ -85,6 +88,9 @@ void LitMaterial::render(World* pWorld, Mesh* pMesh, const glm::mat4& pModelMatr
             case LightType::PointLight:
             {
                 pointLightsCount++;
+
+                if (pointLightsCount >= MAX_NUM_POINT_LIGHTS)
+                    break;
 
                 glUniform3fv(_lightUniformLocations.pointLights[pointLightsCount - 1].position, 1, glm::value_ptr(light->getWorldPosition()));
                 glUniform3fv(_lightUniformLocations.pointLights[pointLightsCount - 1].color, 1, glm::value_ptr(light->color * light->intensity));
