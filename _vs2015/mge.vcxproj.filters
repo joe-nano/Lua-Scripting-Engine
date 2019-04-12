@@ -20,6 +20,9 @@
     <Filter Include="MGE Source files\mge\util">
       <UniqueIdentifier>{7d824c34-4bb6-43a4-a48a-0d68b7aad6e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MGE Source files\mge\core\Lua">
+      <UniqueIdentifier>{93a7d667-7d09-4d3a-88f2-7987fb3acd7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\glm.hpp">
@@ -91,6 +94,12 @@
     <ClInclude Include="..\src\mge\materials\TerrainMaterial.hpp">
       <Filter>MGE Source files\mge\materials</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\mge\core\Lua\LuaState.h">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mge\core\Lua\LuaVector.h">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -158,6 +167,9 @@
     </ClCompile>
     <ClCompile Include="..\src\mge\materials\TerrainMaterial.cpp">
       <Filter>MGE Source files\mge\materials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mge\core\Lua\LuaState.cpp">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
