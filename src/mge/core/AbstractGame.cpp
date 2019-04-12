@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "AbstractGame.hpp"
 #include "mge/core/Renderer.hpp"
@@ -170,6 +171,11 @@ void AbstractGame::_processEvents()
 	if (exit) {
         _window->close();
 	}
+}
+
+lua::LuaState& AbstractGame::GetLuaState()
+{
+    return *_luaState.get();
 }
 
 
