@@ -1,9 +1,9 @@
-material = LoadMaterial()
-
 x = { dave = "busy", ian = "idle"}
 
-vec1 = CreateVector()
-vec2 = CreateVector()
+print(Vector)
+
+vec1 = Vector.new()
+vec2 = Vector.new()
 
 print(vec1.x.." "..vec1.y.."  "..vec1.z)
 

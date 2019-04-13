@@ -45,6 +45,7 @@ void MGEDemo::_initializeLua()
     lua::vec::initializeMetatable(*_luaState.get());
 
     _luaState->LoadFile(config::MGE_LUA_SCRIPT_PATH);
+
     lua_pcall(GetLuaState(), 0, 0, 0);
 
     lua_settop(GetLuaState(), 0);

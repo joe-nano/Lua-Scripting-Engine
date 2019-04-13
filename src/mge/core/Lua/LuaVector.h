@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lua.hpp>
+#include "LuaState.h"
 
 namespace lua
 {
@@ -91,15 +92,20 @@ namespace lua
             return 1;
         }
 
-        inline static void initializeMetatable(lua_State* L)
+        inline static void initializeMetatable(LuaState& L)
         {
-            lua_pushcfunction(L, CreateVector);
-            lua_setglobal(L, "CreateVector");
-
             luaL_newmetatable(L, "VectorMetaTable");
             lua_pushstring(L, "__add");
             lua_pushcfunction(L, __add);
             lua_settable(L, -3);
+
+            lua_newtable(L);
+            int vectorTableIdx = lua_gettop(L);
+            lua_pushvalue(L, vectorTableIdx);
+            lua_setglobal(L, "Vector");
+
+            lua_pushcfunction(L, CreateVector);
+            lua_setfield(L, -2, "new");
         }
     }
 }
