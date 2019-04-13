@@ -42,6 +42,7 @@ void MGEDemo::_initializeLua()
 {
     _luaState = std::make_unique<LuaState>();
 
+    lua::vec::initializeMetatable(*_luaState.get());
 
     auto LoadMaterial = [] (lua_State* L) -> int
     {
