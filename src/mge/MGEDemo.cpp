@@ -44,17 +44,6 @@ void MGEDemo::_initializeLua()
 
     lua::vec::initializeMetatable(*_luaState.get());
 
-    auto LoadMaterial = [] (lua_State* L) -> int
-    {
-        LitMaterial* material = (LitMaterial*)lua_newuserdata(L, sizeof(LitMaterial));
-        material->setDiffuseColor(glm::vec3(1.0f, 0.8f, 0.5f));
-        printf("Material bla bla \n ");
-        return 1;
-    };
-
-    lua_pushcfunction(GetLuaState(), LoadMaterial);
-    lua_setglobal(GetLuaState(), "LoadMaterial");
-
     _luaState->LoadFile(config::MGE_LUA_SCRIPT_PATH);
     lua_pcall(GetLuaState(), 0, 0, 0);
 
