@@ -25,6 +25,7 @@ void AbstractGame::initialize() {
     _initializeGlew();
     _initializeRenderer();
     _initializeWorld();
+    _initializeLua();
     _initializeScene();
     std::cout << std::endl << "Engine initialized." << std::endl << std::endl;
 }

@@ -1,9 +1,11 @@
 #include <iostream>
 #include <string>
 #include <lua.hpp>
+#include <assert.h>
 
 #include "glm.hpp"
 
+#include "mge/core/Lua/LuaVector.h"
 #include "mge/core/Renderer.hpp"
 
 #include "mge/core/Mesh.hpp"
@@ -29,9 +31,33 @@
 #include "mge/config.hpp"
 #include "mge/MGEDemo.hpp"
 
+using namespace lua;
+
 //construct the game class into _window, _renderer and hud (other parts are initialized by build)
 MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 {
+}
+
+void MGEDemo::_initializeLua()
+{
+    _luaState = std::make_unique<LuaState>();
+
+
+    auto LoadMaterial = [] (lua_State* L) -> int
+    {
+        LitMaterial* material = (LitMaterial*)lua_newuserdata(L, sizeof(LitMaterial));
+        material->setDiffuseColor(glm::vec3(1.0f, 0.8f, 0.5f));
+        printf("Material bla bla \n ");
+        return 1;
+    };
+
+    lua_pushcfunction(GetLuaState(), LoadMaterial);
+    lua_setglobal(GetLuaState(), "LoadMaterial");
+
+    _luaState->LoadFile(config::MGE_LUA_SCRIPT_PATH);
+    lua_pcall(GetLuaState(), 0, 0, 0);
+
+    lua_settop(GetLuaState(), 0);
 }
 
 void MGEDemo::initialize() {
@@ -75,37 +101,6 @@ void MGEDemo::_initializeScene()
     terrainMaterial->setDiffuseTexture(Texture::load(config::MGE_TEXTURE_PATH + "diffuse4.jpg"));
     terrainMaterial->setMaxHeight(20);
 
-    /*lua_State* lua = luaL_newstate();
-    luaL_openlibs(lua);
-    luaL_loadfile(lua, (config::MGE_SCRIPT_PATH + "scene.lua").c_str());
-
-    lua_call(lua, 0, 0);
-
-    lua_getglobal(lua, "grade");
-    if (lua_isnumber(lua, -1)) {
-        int grade = lua_tonumber(lua, -1);
-        printf("The grade is %d\n", grade);
-    }
-
-    lua_getglobal(lua, "MouseClick");
-    lua_pushinteger(lua, 20);
-    lua_pushinteger(lua, 30);
-    lua_pushstring(lua, "Middle Button");
-
-    printf("Check stack: %d\n", lua_checkstack(lua, 1));
-
-    lua_call(lua, 3, 0);
-
-    int returnValue = lua_tonumber(lua, -1);
-    lua_pop(lua, 1);
-    printf("Return is: %d\n", returnValue);
-
-    lua_pushstring(lua, "1");
-    lua_setglobal(lua, "input");
-    lua_call(lua, 0, 0);
-
-    lua_close(lua); */
-
     /*GameObject* cameraNew = new GameObject("camera");
     _world->add(cameraNew);
     std::cout << cameraNew->getWorldTransform() << std::endl;
@@ -121,7 +116,7 @@ void MGEDemo::_initializeScene()
     _world->add(camera);
     _world->setMainCamera(camera);
 
-    /*GameObject* plane = new GameObject("Ground", glm::vec3(0, 0, 0));
+    GameObject* plane = new GameObject("Ground", glm::vec3(0, 0, 0));
     plane->scale(glm::vec3(10, 1, 10));
     plane->setMesh(planeMesh);
     plane->setMaterial(planeMaterial);
@@ -130,19 +125,19 @@ void MGEDemo::_initializeScene()
     GameObject* teapot = new GameObject("teapot", glm::vec3(0, 1.5, 0));
     teapot->setMesh(teapotMesh);
     teapot->setMaterial(teapotMaterial);
-    _world->add(teapot);*/
+    _world->add(teapot);
 
     //add a light. Note that the light does ABSOLUTELY ZIP! NADA ! NOTHING !
     //It's here as a place holder to get you started.
     //Note how the texture material is able to detect the number of lights in the scene
     //even though it doesn't implement any lighting yet!
 
-    GameObject* terrain = new GameObject("terrain");
+    /*GameObject* terrain = new GameObject("terrain");
     terrain->scale(glm::vec3(20.0f, 1.0f, 20.f));
     terrain->setMesh(terrainMesh);
     terrain->setMaterial(terrainMaterial);
     //terrain->setBehaviour(new RotatingBehaviour());
-    _world->add(terrain);
+    _world->add(terrain);*/
 
     Light* light1 = new Light("light", glm::vec3(0,7,-5.0f));
     light1->scale(glm::vec3(0.1f, 0.1f, 0.1f));
@@ -154,7 +149,7 @@ void MGEDemo::_initializeScene()
     light1->color = glm::vec3(1.0f, 0.5f, 0.2f);
     _world->add(light1);
 
-    /*Light* light2 = new Light("light", glm::vec3(0, 7, 0.0f));
+    Light* light2 = new Light("light", glm::vec3(0, 7, 0.0f));
     light2->scale(glm::vec3(0.1f, 0.1f, 0.1f));
     light2->rotate(90, glm::vec3(1, 0, 0));
     light2->setMesh(cubeMeshF);
@@ -183,9 +178,9 @@ void MGEDemo::_initializeScene()
     light4->color = glm::vec3(1.0f, 1.0f, 1.0f);
     light4->linearFallOff = 0.07f;
     light4->quadraticFallOff = 0.017f;
-    _world->add(light4);*/
+    _world->add(light4);
 
-    CameraController* cameraController = new CameraController(terrain, 25);
+    CameraController* cameraController = new CameraController(plane, 25);
     camera->setBehaviour(cameraController);
 }
 

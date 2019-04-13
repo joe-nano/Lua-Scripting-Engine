@@ -5,4 +5,5 @@ namespace config {
     const static std::string MGE_SHADER_PATH ("assets/shaders/");
     const static std::string MGE_FONT_PATH ("assets/fonts/");
     const static std::string MGE_SCRIPT_PATH("assets/scripts/");
+    const static std::string MGE_LUA_SCRIPT_PATH("assets/scripts/test.lua");
 }
