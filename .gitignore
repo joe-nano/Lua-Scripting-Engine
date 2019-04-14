@@ -32,7 +32,6 @@ release_dynamic_exe
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
