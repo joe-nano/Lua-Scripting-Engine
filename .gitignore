@@ -7,6 +7,10 @@ debug_dynamic_build
 debug_dynamic_exe
 release_dynamic_build
 release_dynamic_exe
+release_static_build
+release_static_exe
+debug_static_build
+debug_static_exe
 
 # IDE Stuff
 .idea

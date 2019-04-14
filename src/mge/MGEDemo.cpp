@@ -30,6 +30,16 @@
 #include "mge/config.hpp"
 #include "mge/MGEDemo.hpp"
 
+#include <rttr/registration>
+
+static void f() { std::cout << "Hello World" << std::endl; }
+using namespace rttr;
+RTTR_REGISTRATION
+{
+    using namespace rttr;
+    registration::method("f", &f);
+}
+
 using namespace lua;
 
 //construct the game class into _window, _renderer and hud (other parts are initialized by build)
@@ -39,6 +49,8 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 
 void MGEDemo::_initializeLua()
 {
+    type::invoke("f", {});
+
     _luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH);
 
     lua_pcall(_luaState, 0, 0, 0);
