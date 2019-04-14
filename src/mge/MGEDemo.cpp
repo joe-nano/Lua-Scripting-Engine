@@ -40,15 +40,15 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 
 void MGEDemo::_initializeLua()
 {
-    _luaState = std::make_unique<LuaState>();
+    _luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH);
 
-    lua::vec::initializeMetatable(*_luaState.get());
+    lua_pcall(_luaState, 0, 0, 0);
 
-    _luaState->LoadFile(config::MGE_LUA_SCRIPT_PATH);
+    lua_settop(_luaState, 0);
 
-    lua_pcall(GetLuaState(), 0, 0, 0);
-
-    lua_settop(GetLuaState(), 0);
+    printf("---- lua memory allocation ---- \n");
+    {
+    }
 }
 
 void MGEDemo::initialize() {
