@@ -176,7 +176,7 @@ void AbstractGame::_processEvents()
 
 lua::LuaState& AbstractGame::GetLuaState()
 {
-    return *_luaState.get();
+    return _luaState;
 }
 
 

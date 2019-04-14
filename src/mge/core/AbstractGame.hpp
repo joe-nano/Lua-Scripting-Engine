@@ -61,7 +61,7 @@ class AbstractGame
 		World* _world;              //the root game object that represents our scene
 		float _fps;                 //stores the real fps
 
-        std::unique_ptr<lua::LuaState> _luaState;
+        lua::LuaState _luaState;
 
     private:
         AbstractGame(const AbstractGame&);
