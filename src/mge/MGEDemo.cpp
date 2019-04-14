@@ -5,7 +5,6 @@
 
 #include "glm.hpp"
 
-#include "mge/core/Lua/LuaVector.h"
 #include "mge/core/Renderer.hpp"
 
 #include "mge/core/Mesh.hpp"
