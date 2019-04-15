@@ -169,7 +169,8 @@ std::string MetaTableName(rttr::type const& t)
 
 int CreateUserDatum(lua_State* L)
 {
-    rttr::type& typeToCreate = *(rttr::type*)lua_touserdata(L, lua_upvalueindex(1));
+    const char* typeName = (const char*)lua_tostring(L, lua_upvalueindex(1));
+    rttr::type typeToCreate = rttr::type::get_by_name(typeName);
 
     void* ud = lua_newuserdata(L, sizeof(rttr::variant));
     new (ud) rttr::variant(typeToCreate.create()); // TODO: don't allocate memory twice?????
@@ -284,7 +285,7 @@ void MGEDemo::_initializeLua()
             lua_pushvalue(_luaState, -1);
             lua_setglobal(_luaState, typeName);
 
-            lua_pushlightuserdata(_luaState, (void*)&classToRegister);
+            lua_pushstring(_luaState, typeName);
             lua_pushcclosure(_luaState, CreateUserDatum, 1);
             lua_setfield(_luaState, -2, "new");
 
