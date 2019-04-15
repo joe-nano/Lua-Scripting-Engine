@@ -317,7 +317,29 @@ int NewIndexUserDatum(lua_State* L)
 
     if (p.is_valid())
     {
-        luaL_error(L, "TODO: need to write to native property, type '%s'", typeName);
+        rttr::variant& ud =*(rttr::variant*)lua_touserdata(L, 1);
+
+        int luaType = lua_type(L, 3);
+
+        switch (luaType)
+        {
+            case LUA_TNUMBER:
+                if (p.get_type() == rttr::type::get<int>())
+                {
+                    int val = (int)lua_tonumber(L, 3);
+                    assert(p.set_value(ud, val));
+                }
+                else if (p.get_type() == rttr::type::get<float>())
+                {
+                    float val = (float)lua_tonumber(L, 3);
+                    assert(p.set_value(ud, val));
+                }
+                break;
+            default:
+                luaL_error(L, "TODO: need to write to native property, type '%s'", typeName);
+                assert(false);
+                break;
+        }
     }
 
     // if it wasn't a property then set it as a uservalue
