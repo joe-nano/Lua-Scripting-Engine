@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include <lua.hpp>
+#include <lua/lua.hpp>
 #include <assert.h>
 
 #include "glm.hpp"
@@ -50,6 +50,14 @@ RTTR_REGISTRATION
     registration::method("f", &f);
     registration::method("Move", &Move);
     registration::method("Add", &Add);
+
+    registration::class_<GameObject>("GameObject")
+        .constructor<std::string, glm::vec3>()
+        .method("setName", &GameObject::setName)
+        .method("getName", &GameObject::getName)
+        .method("translate", &GameObject::translate)
+        .method("scale", &GameObject::scale)
+        .method("rotate", &GameObject::rotate);
 }
 
 using namespace lua;
@@ -145,6 +153,19 @@ int CallGlobalFromLua(lua_State* L)
     return numberOfReturnValues;
 }
 
+int CreateUserDatum(lua_State* L)
+{
+    rttr::type& typeToCreate = *(rttr::type*)lua_touserdata(L, lua_upvalueindex(1));
+
+    void* ud = lua_newuserdata(L, sizeof(rttr::variant));
+    new (ud) rttr::variant(typeToCreate.create()); // TODO: don't allocate memory twice?????
+
+    lua_newtable(L);
+    lua_setuservalue(L, 1);
+
+    return 1; //return userdatum
+}
+
 void MGEDemo::_initializeLua()
 {
     lua_newtable(_luaState);
@@ -160,6 +181,23 @@ void MGEDemo::_initializeLua()
         lua_pushlightuserdata(_luaState, (void*)&method);
         lua_pushcclosure(_luaState, CallGlobalFromLua, 1);
         lua_settable(_luaState, -3);
+    }
+
+    /// bind all the registered classes/structs names to their own table
+    for (auto& classToRegister : rttr::type::get_types())
+    {
+        if (classToRegister.is_class())
+        {
+            lua_settop(_luaState, 0);
+
+            lua_newtable(_luaState);
+            lua_pushvalue(_luaState, -1);
+            lua_setglobal(_luaState, classToRegister.get_name().to_string().c_str());
+
+            lua_pushlightuserdata(_luaState, (void*)&classToRegister);
+            lua_pushcclosure(_luaState, CreateUserDatum, 1);
+            lua_setfield(_luaState, -2, "new");
+        }
     }
 
     _luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH);
