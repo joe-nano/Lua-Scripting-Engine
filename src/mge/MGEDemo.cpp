@@ -257,18 +257,17 @@ int IndexUserDatum(lua_State* L)
        assert(false);
    }
 
-   if (!lua_isstring(L, -1))
+   if (!lua_isstring(L, 2))
    {
        luaL_error(L, "Expected a name of a native property or method when indexing native type: '%s'", typeName);
        assert(false);
    }
 
-   const char* fieldName = (const char*)lua_tostring(L, -1);
+   const char* fieldName = (const char*)lua_tostring(L, 2);
    rttr::method m = typeInfo.get_method(fieldName);
 
    if (m.is_valid())
    {
-       //m.invoke(ud)
        void* methodUD = lua_newuserdata(L, sizeof(rttr::method));
        new (methodUD) rttr::method(m);
        lua_pushcclosure(L, InvokeFuncOnUserDatum, 1);
@@ -286,9 +285,48 @@ int IndexUserDatum(lua_State* L)
            return PushToLuaStack(L, result);
    }
 
-   luaL_error(L, "TODO: need to check to see if '%s' is a uservalue of '%s'", fieldName, typeName);
+   // if it's not a method or property then return the uservalue
+   lua_getuservalue(L, 1);
+   lua_pushvalue(L, 2);
+   lua_gettable(L, -2);
 
-   return 0;
+   return 1;
+}
+
+int NewIndexUserDatum(lua_State* L)
+{
+    const char* typeName = (const char*)lua_tostring(L, lua_upvalueindex(1));
+    rttr::type typeInfo = rttr::type::get_by_name(typeName);
+
+    if (!lua_isuserdata(L, 1))
+    {
+        luaL_error(L, "Expected a userdatum on the lua stack when indexing type: '%s'", typeName);
+        assert(false);
+    }
+
+    if (!lua_isstring(L, 2))
+    {
+        luaL_error(L, "Expected a name of a native property or method when indexing native type: '%s'", typeName);
+        assert(false);
+    }
+
+    // 3 - the value we are writing to the object
+
+    const char* fieldName = (const char*)lua_tostring(L, 2);
+    rttr::property p = typeInfo.get_property(fieldName);
+
+    if (p.is_valid())
+    {
+        luaL_error(L, "TODO: need to write to native property, type '%s'", typeName);
+    }
+
+    // if it wasn't a property then set it as a uservalue
+    lua_getuservalue(L, 1);
+    lua_pushvalue(L, 2);
+    lua_pushvalue(L, 3);
+    lua_settable(L, -3);
+
+    return 0;
 }
 
 void MGEDemo::_initializeLua()
@@ -337,6 +375,11 @@ void MGEDemo::_initializeLua()
             lua_pushstring(_luaState, "__index");
             lua_pushstring(_luaState, typeName);
             lua_pushcclosure(_luaState, IndexUserDatum, 1);
+            lua_settable(_luaState, -3);
+
+            lua_pushstring(_luaState, "__newindex");
+            lua_pushstring(_luaState, typeName);
+            lua_pushcclosure(_luaState, NewIndexUserDatum, 1);
             lua_settable(_luaState, -3);
         }
     }
