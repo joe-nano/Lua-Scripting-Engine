@@ -153,6 +153,14 @@ int CallGlobalFromLua(lua_State* L)
     return numberOfReturnValues;
 }
 
+/*! \return The meta table name for type t*/
+std::string MetaTableName(rttr::type const& t)
+{
+    std::string metaTableName = t.get_name().to_string();
+    metaTableName.append("_MT_");
+    return metaTableName;
+}
+
 int CreateUserDatum(lua_State* L)
 {
     rttr::type& typeToCreate = *(rttr::type*)lua_touserdata(L, lua_upvalueindex(1));
@@ -160,10 +168,24 @@ int CreateUserDatum(lua_State* L)
     void* ud = lua_newuserdata(L, sizeof(rttr::variant));
     new (ud) rttr::variant(typeToCreate.create()); // TODO: don't allocate memory twice?????
 
+    luaL_getmetatable(L, MetaTableName(typeToCreate).c_str());
+    lua_setmetatable(L, 1);
+
     lua_newtable(L);
     lua_setuservalue(L, 1);
 
     return 1; //return userdatum
+}
+
+int DestroyUserDatum(lua_State* L)
+{
+    // call the destructor on the variant which actual
+    // inside it is gonna call the destructor of its return type
+    // that we've bound to it
+    rttr::variant* ud = (rttr::variant*)lua_touserdata(L, -1);
+    ud->~variant();
+
+    return 0;
 }
 
 void MGEDemo::_initializeLua()
@@ -197,6 +219,12 @@ void MGEDemo::_initializeLua()
             lua_pushlightuserdata(_luaState, (void*)&classToRegister);
             lua_pushcclosure(_luaState, CreateUserDatum, 1);
             lua_setfield(_luaState, -2, "new");
+
+            // create the metatable & metamethods for this type
+            luaL_newmetatable(_luaState, MetaTableName(classToRegister).c_str());
+            lua_pushstring(_luaState, "__gc");
+            lua_pushcfunction(_luaState, DestroyUserDatum);
+            lua_settable(_luaState, -3);
         }
     }
 
