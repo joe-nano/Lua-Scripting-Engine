@@ -33,11 +33,23 @@
 #include <rttr/registration>
 
 static void f() { std::cout << "Hello World" << std::endl; }
+
+static void Move(int x, int y)
+{
+    printf("Hello, x: (%d) y: (%d)", x, y);
+}
+
+static int Add(int x, int y)
+{
+    return x + y;
+}
+
 using namespace rttr;
 RTTR_REGISTRATION
 {
-    using namespace rttr;
     registration::method("f", &f);
+    registration::method("Move", &Move);
+    registration::method("Add", &Add);
 }
 
 using namespace lua;
@@ -47,19 +59,114 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 {
 }
 
+int CallGlobalFromLua(lua_State* L)
+{
+    rttr::method* m = (rttr::method*)lua_touserdata(L, lua_upvalueindex(1));
+    rttr::method& methodToInvoke(*m);
+
+    rttr::array_range<rttr::parameter_info> nativeParams = methodToInvoke.get_parameter_infos();
+
+    int numLuaArgs      = (int)lua_gettop(L);
+    int numNativeArgs   = (int)nativeParams.size();
+
+    if (numLuaArgs != numNativeArgs)
+    {
+        printf("Error calling native function '%s', wrong number of arguments, expected %d, got %d", 
+               methodToInvoke.get_name().to_string().c_str(), numNativeArgs, numLuaArgs);
+        assert(numLuaArgs == numNativeArgs);
+    }
+
+    union PassByValue
+    {
+        int intVal;
+    };
+
+    std::vector<PassByValue> pbv(numNativeArgs);
+    std::vector<rttr::argument> nativeArgs (numNativeArgs);
+
+    auto nativeParamsIt = nativeParams.begin();
+
+    // filling in paramater values from lua
+    for (int index = 0; index < numLuaArgs; ++index, ++nativeParamsIt)
+    {
+        const rttr::type nativeParamType = nativeParamsIt->get_type();
+
+        int luaArgumentIndex = index + 1;
+        int luaType = lua_type(L, luaArgumentIndex);
+
+        switch (luaType)
+        {
+            case LUA_TNUMBER:
+                if (nativeParamType == rttr::type::get<int>())
+                {
+                    pbv[index].intVal = (int)lua_tonumber(L, luaArgumentIndex);
+                    nativeArgs[index] = pbv[index].intVal;
+                }
+                else
+                {
+                    printf("unrecognised paramater type %s \n", nativeParamType.get_name().to_string().c_str());
+                    assert(false);
+                }
+                break;
+
+
+            default:
+                assert(false);
+                break;
+        }
+    }
+
+    int numberOfReturnValues = 0;
+
+    rttr::variant result = methodToInvoke.invoke_variadic({}, nativeArgs);
+
+    if (!result.is_valid())
+    {
+        luaL_error(L, 
+                   "Unable to invoke: '%s' \n", 
+                   methodToInvoke.get_name().to_string().c_str());
+    }
+    else if (!result.is_type<void>())
+    {
+        if (result.is_type<int>())
+        {
+            lua_pushnumber(L, result.get_value<int>());
+            numberOfReturnValues++;
+        }
+        else
+        {
+            luaL_error(L,
+                       "Unhandled return type '%s' from native method: '%s' \n",
+                       result.get_type().get_name().to_string().c_str(),
+                       methodToInvoke.get_name().to_string().c_str());
+        }
+    }
+
+    return numberOfReturnValues;
+}
+
 void MGEDemo::_initializeLua()
 {
-    type::invoke("f", {});
+    lua_newtable(_luaState);
+    lua_pushvalue(_luaState, -1);
+
+    lua_setglobal(_luaState, "Game");
+    lua_pushvalue(_luaState, -1);
+
+    /// bind all the registered methods names to the table called Game
+    for (auto& method : rttr::type::get_global_methods())
+    {
+        lua_pushstring(_luaState, method.get_name().to_string().c_str());
+        lua_pushlightuserdata(_luaState, (void*)&method);
+        lua_pushcclosure(_luaState, CallGlobalFromLua, 1);
+        lua_settable(_luaState, -3);
+    }
 
     _luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH);
 
     lua_pcall(_luaState, 0, 0, 0);
 
     lua_settop(_luaState, 0);
-
-    printf("---- lua memory allocation ---- \n");
-    {
-    }
 }
 
 void MGEDemo::initialize() {
