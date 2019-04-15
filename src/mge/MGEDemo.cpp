@@ -73,19 +73,27 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 {
 }
 
-int CallGlobalFromLua(lua_State* L)
+/*! \brief Invoke #methodToInvoke on #objTarget, passing the arguments to the method from Lua and leave the result on the Lua Stack.
+*   - Assumes that the top of the stack downwards is filled with the parameters to the method we are invoking
+*   - To call a free function pass rttr::instance = {} as #objTarget
+* \return the number of values left on the Lua stack */
+int InvokeMethod(lua_State* L, rttr::method& methodToInvoke, rttr::instance& objTarget)
 {
-    rttr::method* m = (rttr::method*)lua_touserdata(L, lua_upvalueindex(1));
-    rttr::method& methodToInvoke(*m);
-
     rttr::array_range<rttr::parameter_info> nativeParams = methodToInvoke.get_parameter_infos();
 
-    int numLuaArgs      = (int)lua_gettop(L);
-    int numNativeArgs   = (int)nativeParams.size();
+    int numLuaArgs          = lua_gettop(L);
+    int numNativeArgs       = (int)nativeParams.size();
+    int luaParamsStackOffset = 0;
+
+    if (numLuaArgs > numNativeArgs)
+    {
+        luaParamsStackOffset = numNativeArgs - numNativeArgs;
+        numLuaArgs = numNativeArgs;
+    }
 
     if (numLuaArgs != numNativeArgs)
     {
-        printf("Error calling native function '%s', wrong number of arguments, expected %d, got %d", 
+        printf("Error calling native function '%s', wrong number of arguments, expected %d, got %d",
                methodToInvoke.get_name().to_string().c_str(), numNativeArgs, numLuaArgs);
         assert(numLuaArgs == numNativeArgs);
     }
@@ -96,7 +104,7 @@ int CallGlobalFromLua(lua_State* L)
     };
 
     std::vector<PassByValue> pbv(numNativeArgs);
-    std::vector<rttr::argument> nativeArgs (numNativeArgs);
+    std::vector<rttr::argument> nativeArgs(numNativeArgs);
 
     auto nativeParamsIt = nativeParams.begin();
 
@@ -105,7 +113,7 @@ int CallGlobalFromLua(lua_State* L)
     {
         const rttr::type nativeParamType = nativeParamsIt->get_type();
 
-        int luaArgumentIndex = index + 1;
+        int luaArgumentIndex = index + 1 + luaParamsStackOffset;
         int luaType = lua_type(L, luaArgumentIndex);
 
         switch (luaType)
@@ -122,22 +130,25 @@ int CallGlobalFromLua(lua_State* L)
                     assert(false);
                 }
                 break;
-
-
             default:
-                assert(false);
+                luaL_error(L, 
+                           "Don't know this lua type '%s', parameter %d when calling 's'",
+                           lua_typename(L, luaType), 
+                           index,
+                           methodToInvoke.get_name().to_string().c_str());
+                assert(false); // don't know this type
                 break;
         }
     }
 
     int numberOfReturnValues = 0;
 
-    rttr::variant result = methodToInvoke.invoke_variadic({}, nativeArgs);
+    rttr::variant result = methodToInvoke.invoke_variadic(objTarget, nativeArgs);
 
     if (!result.is_valid())
     {
-        luaL_error(L, 
-                   "Unable to invoke: '%s' \n", 
+        luaL_error(L,
+                   "Unable to invoke: '%s' \n",
                    methodToInvoke.get_name().to_string().c_str());
     }
     else if (!result.is_type<void>())
@@ -157,6 +168,15 @@ int CallGlobalFromLua(lua_State* L)
     }
 
     return numberOfReturnValues;
+}
+
+int CallGlobalFromLua(lua_State* L)
+{
+    rttr::method* m = (rttr::method*)lua_touserdata(L, lua_upvalueindex(1));
+    rttr::method& methodToInvoke(*m);
+    rttr::instance object = {};
+
+    return InvokeMethod(L, methodToInvoke, object);
 }
 
 /*! \return The meta table name for type t*/
@@ -209,15 +229,9 @@ int InvokeFuncOnUserDatum(lua_State* L)
     }
 
     rttr::variant& ud       = *(rttr::variant*)lua_touserdata(L, 1);
-    rttr::variant result    = m.invoke(ud);
+    rttr::instance object(ud);
 
-    if (!result.is_valid())
-    {
-        luaL_error(L, "Failed to invoke native method: '%s'", m.get_name().to_string().c_str());
-        assert(false);
-    }
-
-    return 0;
+    return InvokeMethod(L, m, object);
 }
 
 int IndexUserDatum(lua_State* L)
