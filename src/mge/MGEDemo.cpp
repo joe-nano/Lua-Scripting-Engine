@@ -73,6 +73,42 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 {
 }
 
+/*! \brief Takes the result and puts it onto the Lua stack
+*   \return the number of values left on the stack
+*/
+int PushToLuaStack(lua_State* L, rttr::variant& result)
+{
+    int numberOfReturnValues = 0;
+
+    if (!result.is_valid())
+    {
+        luaL_error(L,
+                   "Unable send to Lua type: '%s' \n",
+                   result.get_type().get_name().to_string().c_str());
+    }
+    else if (!result.is_type<void>())
+    {
+        if (result.is_type<int>())
+        {
+            lua_pushnumber(L, result.get_value<int>());
+            numberOfReturnValues++;
+        }
+        else if (result.is_type<float>())
+        {
+            lua_pushnumber(L, result.get_value<float>());
+            numberOfReturnValues++;
+        }
+        else
+        {
+            luaL_error(L,
+                       "Unhandled type '%s' being sent to Lua.\n",
+                       result.get_type().get_name().to_string().c_str());
+        }
+    }
+
+    return numberOfReturnValues;
+}
+
 /*! \brief Invoke #methodToInvoke on #objTarget, passing the arguments to the method from Lua and leave the result on the Lua Stack.
 *   - Assumes that the top of the stack downwards is filled with the parameters to the method we are invoking
 *   - To call a free function pass rttr::instance = {} as #objTarget
@@ -141,33 +177,9 @@ int InvokeMethod(lua_State* L, rttr::method& methodToInvoke, rttr::instance& obj
         }
     }
 
-    int numberOfReturnValues = 0;
-
     rttr::variant result = methodToInvoke.invoke_variadic(objTarget, nativeArgs);
 
-    if (!result.is_valid())
-    {
-        luaL_error(L,
-                   "Unable to invoke: '%s' \n",
-                   methodToInvoke.get_name().to_string().c_str());
-    }
-    else if (!result.is_type<void>())
-    {
-        if (result.is_type<int>())
-        {
-            lua_pushnumber(L, result.get_value<int>());
-            numberOfReturnValues++;
-        }
-        else
-        {
-            luaL_error(L,
-                       "Unhandled return type '%s' from native method: '%s' \n",
-                       result.get_type().get_name().to_string().c_str(),
-                       methodToInvoke.get_name().to_string().c_str());
-        }
-    }
-
-    return numberOfReturnValues;
+    return PushToLuaStack(L, result);
 }
 
 int CallGlobalFromLua(lua_State* L)
@@ -262,6 +274,19 @@ int IndexUserDatum(lua_State* L)
        lua_pushcclosure(L, InvokeFuncOnUserDatum, 1);
        return 1;
    }
+
+   rttr::property p = typeInfo.get_property(fieldName);
+
+   if (p.is_valid())
+   {
+       rttr::variant& ud = *(rttr::variant*)lua_touserdata(L, 1);
+       rttr::variant result = p.get_value(ud);
+
+       if (result.is_valid())
+           return PushToLuaStack(L, result);
+   }
+
+   luaL_error(L, "TODO: need to check to see if '%s' is a uservalue of '%s'", fieldName, typeName);
 
    return 0;
 }
