@@ -42,7 +42,7 @@ class AbstractGame
         virtual void _initializeWorld();
 
         // initialize lua state and metatables etc.
-        virtual void _initializeLua() {};
+        virtual bool _initializeLua();
 
         //initialize the actual scene, HAS to be done by a subclass
         virtual void _initializeScene() = 0;

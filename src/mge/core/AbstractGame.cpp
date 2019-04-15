@@ -4,6 +4,8 @@
 #include "AbstractGame.hpp"
 #include "mge/core/Renderer.hpp"
 #include "mge/core/World.hpp"
+#include "mge/core/Lua/LuaHelper.h"
+#include "mge/config.hpp"
 
 AbstractGame::AbstractGame():_window(NULL),_renderer(NULL),_world(NULL), _fps(0)
 {
@@ -81,6 +83,16 @@ void AbstractGame::_initializeWorld() {
 	std::cout << "Initializing world..." << std::endl;
 	_world = new World();
     std::cout << "World initialized." << std::endl << std::endl;
+}
+
+bool AbstractGame::_initializeLua()
+{
+    lua::binding::BindToLuaScript(_luaState, "Game");
+
+    if (!_luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH))
+        return false;
+
+    return _luaState.Execute();
 }
 
 ///MAIN GAME LOOP

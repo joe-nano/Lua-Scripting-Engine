@@ -25,7 +25,7 @@ class MGEDemo: public AbstractGame
 	    //override so we can construct the actual scene
         virtual void _initializeScene();
 
-        virtual void _initializeLua() override;
+        virtual bool _initializeLua() override;
 
 	    //override render to render the hud as well.
 	    virtual void _render();

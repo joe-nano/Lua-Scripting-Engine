@@ -178,8 +178,10 @@
     <ClInclude Include="..\src\mge\core\Camera.hpp" />
     <ClInclude Include="..\src\mge\core\GameObject.hpp" />
     <ClInclude Include="..\src\mge\core\Light.hpp" />
+    <ClInclude Include="..\src\mge\core\Lua\LuaHelper.h" />
+    <ClInclude Include="..\src\mge\core\Lua\LuaStack.h" />
     <ClInclude Include="..\src\mge\core\Lua\LuaState.h" />
-    <ClInclude Include="..\src\mge\core\Lua\LuaVector.h" />
+    <ClInclude Include="..\src\mge\core\Lua\MetatableHelper.h" />
     <ClInclude Include="..\src\mge\core\Mesh.hpp" />
     <ClInclude Include="..\src\mge\core\Renderer.hpp" />
     <ClInclude Include="..\src\mge\core\ShaderProgram.hpp" />
@@ -204,7 +206,10 @@
     <ClCompile Include="..\src\mge\core\Camera.cpp" />
     <ClCompile Include="..\src\mge\core\GameObject.cpp" />
     <ClCompile Include="..\src\mge\core\Light.cpp" />
+    <ClCompile Include="..\src\mge\core\Lua\LuaHelper.cpp" />
+    <ClCompile Include="..\src\mge\core\Lua\LuaStack.cpp" />
     <ClCompile Include="..\src\mge\core\Lua\LuaState.cpp" />
+    <ClCompile Include="..\src\mge\core\Lua\MetatableHelper.cpp" />
     <ClCompile Include="..\src\mge\core\Mesh.cpp" />
     <ClCompile Include="..\src\mge\core\Renderer.cpp" />
     <ClCompile Include="..\src\mge\core\ShaderProgram.cpp" />

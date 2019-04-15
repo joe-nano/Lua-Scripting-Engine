@@ -31,8 +31,19 @@ bool LuaState::LoadFile(std::string const& filename)
     if (errorCode != 0) // LUA_OK
     {
         LogLuaError(L, ("FATAL ERROR: Cannot Open file: " + filename).c_str());
-        exit(1);
         return false;
     }
+    return true;
+}
+
+bool LuaState::Execute()
+{
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK)
+    {
+        printf("Error: %s\n", lua_tostring(L, -1));
+        return false;
+    }
+
+    lua_settop(L, 0);
     return true;
 }

@@ -97,7 +97,13 @@
     <ClInclude Include="..\src\mge\core\Lua\LuaState.h">
       <Filter>MGE Source files\mge\core\Lua</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\mge\core\Lua\LuaVector.h">
+    <ClInclude Include="..\src\mge\core\Lua\MetatableHelper.h">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mge\core\Lua\LuaStack.h">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mge\core\Lua\LuaHelper.h">
       <Filter>MGE Source files\mge\core\Lua</Filter>
     </ClInclude>
   </ItemGroup>
@@ -169,6 +175,15 @@
       <Filter>MGE Source files\mge\materials</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mge\core\Lua\LuaState.cpp">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mge\core\Lua\MetatableHelper.cpp">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mge\core\Lua\LuaStack.cpp">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mge\core\Lua\LuaHelper.cpp">
       <Filter>MGE Source files\mge\core\Lua</Filter>
     </ClCompile>
   </ItemGroup>

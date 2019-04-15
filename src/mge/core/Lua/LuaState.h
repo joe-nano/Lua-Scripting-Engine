@@ -19,6 +19,7 @@ namespace lua
             void LogLuaError(lua_State* lua, const char * msg);
 
             bool LoadFile(std::string const& filename);
+            bool Execute();
         private:
             bool _shouldCloseOnDestroy;
 
