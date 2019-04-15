@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lua.hpp>
+#include <lua/lua.hpp>
 #include <string>
 
 namespace lua
