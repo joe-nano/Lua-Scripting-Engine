@@ -109,6 +109,45 @@ int PushToLuaStack(lua_State* L, rttr::variant& result)
     return numberOfReturnValues;
 }
 
+int PutOnLuaStack(lua_State* L)
+{
+    return 0;
+}
+
+template<typename T>
+int PutOnLuaStack(lua_State* L, T toPutOnStack)
+{
+    rttr::variant v(toPutOnStack);
+    return PushToLuaStack(L, v);
+}
+
+template<typename T, typename... T2>
+int PutOnLuaStack(lua_State* L, T toPutOnStack, T2... moreArgs)
+{
+    return PutOnLuaStack(L, toPutOnStack) + PutOnLuaStack(L, moreArgs...);
+}
+
+template<typename... ARGS>
+void CallScriptFunction(lua_State* L, const char* funcName, ARGS... args)
+{
+    lua_getglobal(L, funcName);
+
+    if (lua_type(L, -1) == LUA_TFUNCTION)
+    {
+        int numArgs = PutOnLuaStack(L, args...);
+
+        if (lua_pcall(L, numArgs, 0, 0) != LUA_OK)
+        {
+            printf("unable to call script function '%s', '%s'\n", funcName, lua_tostring(L, -1));
+            luaL_error(L, "unable to call script  function '%s'", funcName, lua_tostring(L, -1));
+        }
+    }
+    else
+    {
+        printf("unknown script function %s\n", funcName);
+    }
+}
+
 /*! \brief Invoke #methodToInvoke on #objTarget, passing the arguments to the method from Lua and leave the result on the Lua Stack.
 *   - Assumes that the top of the stack downwards is filled with the parameters to the method we are invoking
 *   - To call a free function pass rttr::instance = {} as #objTarget
