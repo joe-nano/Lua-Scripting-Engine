@@ -73,6 +73,37 @@ MGEDemo::MGEDemo():AbstractGame (),_hud(0)
 {
 }
 
+/*! \return The meta table name for type t*/
+std::string MetaTableName(rttr::type const& t)
+{
+    std::string metaTableName;
+
+    if (t.is_pointer())
+        metaTableName = t.get_raw_type().get_name().to_string();
+    else
+        metaTableName = t.get_name().to_string();
+
+    metaTableName.append("_MT_");
+
+    return metaTableName;
+}
+
+int CreateUserDatumFromVariant(lua_State* L, rttr::variant const& v)
+{
+    void* ud = lua_newuserdata(L, sizeof(rttr::variant));
+    int userDatumStackIdx = lua_gettop(L);
+
+    new (ud) rttr::variant(v);
+
+    luaL_getmetatable(L, MetaTableName(v.get_type()).c_str());
+    lua_setmetatable(L, userDatumStackIdx);
+
+    lua_newtable(L);
+    lua_setuservalue(L, userDatumStackIdx);
+
+    return 1; //return userdatum
+}
+
 /*! \brief Takes the result and puts it onto the Lua stack
 *   \return the number of values left on the stack
 */
@@ -98,6 +129,10 @@ int PushToLuaStack(lua_State* L, rttr::variant& result)
             lua_pushnumber(L, result.get_value<float>());
             numberOfReturnValues++;
         }
+        else if (result.get_type().is_class() || result.get_type().is_pointer())
+        {
+            numberOfReturnValues += CreateUserDatumFromVariant(L, result);
+        }
         else
         {
             luaL_error(L,
@@ -115,20 +150,31 @@ int PutOnLuaStack(lua_State* L)
 }
 
 template<typename T>
-int PutOnLuaStack(lua_State* L, T toPutOnStack)
+int PutOnLuaStack(lua_State* L, T& toPutOnStack)
 {
-    rttr::variant v(toPutOnStack);
-    return PushToLuaStack(L, v);
+    rttr::type typeOfT = rttr::type::get<T>();
+    if (typeOfT.is_class())
+    {
+        // pass-by-reference
+        rttr::variant v(&toPutOnStack);
+        return PushToLuaStack(L, v);
+    }
+    else
+    {
+        // pass-by-value
+        rttr::variant v(toPutOnStack);
+        return PushToLuaStack(L, v);
+    }
 }
 
 template<typename T, typename... T2>
-int PutOnLuaStack(lua_State* L, T toPutOnStack, T2... moreArgs)
+int PutOnLuaStack(lua_State* L, T& toPutOnStack, T2&... moreArgs)
 {
     return PutOnLuaStack(L, toPutOnStack) + PutOnLuaStack(L, moreArgs...);
 }
 
 template<typename... ARGS>
-void CallScriptFunction(lua_State* L, const char* funcName, ARGS... args)
+void CallScriptFunction(lua_State* L, const char* funcName, ARGS&... args)
 {
     lua_getglobal(L, funcName);
 
@@ -228,14 +274,6 @@ int CallGlobalFromLua(lua_State* L)
     rttr::instance object = {};
 
     return InvokeMethod(L, methodToInvoke, object);
-}
-
-/*! \return The meta table name for type t*/
-std::string MetaTableName(rttr::type const& t)
-{
-    std::string metaTableName = t.get_name().to_string();
-    metaTableName.append("_MT_");
-    return metaTableName;
 }
 
 int CreateUserDatum(lua_State* L)
@@ -465,7 +503,8 @@ void MGEDemo::_initializeLua()
 
     lua_settop(_luaState, 0);
 
-    CallScriptFunction(_luaState, "Foo", 3);
+    int one = 3;
+    CallScriptFunction(_luaState, "Foo", one);
 }
 
 void MGEDemo::initialize() {
