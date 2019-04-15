@@ -393,7 +393,7 @@ int NewIndexUserDatum(lua_State* L)
     return 0;
 }
 
-void MGEDemo::_initializeLua()
+void CreateLuaScript(lua_State* _luaState)
 {
     lua_newtable(_luaState);
     lua_pushvalue(_luaState, -1);
@@ -447,12 +447,25 @@ void MGEDemo::_initializeLua()
             lua_settable(_luaState, -3);
         }
     }
+}
+
+int ExecuteScript(LuaState& L)
+{
+    return lua_pcall(L, 0, 0, 0);
+}
+
+void MGEDemo::_initializeLua()
+{
+    CreateLuaScript(_luaState);
 
     _luaState.LoadFile(config::MGE_LUA_SCRIPT_PATH);
 
-    lua_pcall(_luaState, 0, 0, 0);
+    if (ExecuteScript(_luaState) != LUA_OK)
+        printf("Error: %s\n", lua_tostring(_luaState, -1));
 
     lua_settop(_luaState, 0);
+
+    CallScriptFunction(_luaState, "Foo", 3);
 }
 
 void MGEDemo::initialize() {
