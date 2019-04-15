@@ -336,10 +336,13 @@ int NewIndexUserDatum(lua_State* L)
                 }
                 break;
             default:
-                luaL_error(L, "TODO: need to write to native property, type '%s'", typeName);
+                luaL_error(L, "Cannot set the value '%s' on this type '%s', didn't recognize lua type '%s'", 
+                           fieldName, typeName, lua_typename(L, 3));
                 assert(false);
                 break;
         }
+
+        return 0;
     }
 
     // if it wasn't a property then set it as a uservalue
