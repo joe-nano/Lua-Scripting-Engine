@@ -16,6 +16,7 @@ class Mesh;
 class GameObject
 {
 	public:
+        GameObject() {};
 		GameObject(const std::string& pName = nullptr, const glm::vec3& pPosition = glm::vec3( 0.0f, 0.0f, 0.0f ));
 		virtual ~GameObject();
 

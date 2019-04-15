@@ -51,6 +51,12 @@ RTTR_REGISTRATION
     registration::method("Move", &Move);
     registration::method("Add", &Add);
 
+    registration::class_<glm::vec3>("vec3")
+        .constructor<>()
+        .property("x", &glm::vec3::x)
+        .property("y", &glm::vec3::y)
+        .property("z", &glm::vec3::z);
+
     registration::class_<GameObject>("GameObject")
         .constructor<std::string, glm::vec3>()
         .method("setName", &GameObject::setName)
@@ -188,6 +194,63 @@ int DestroyUserDatum(lua_State* L)
     return 0;
 }
 
+int InvokeFuncOnUserDatum(lua_State* L)
+{
+    rttr::method& m = *(rttr::method*)lua_touserdata(L, lua_upvalueindex(1));
+
+    if (!lua_isuserdata(L, 1))
+    {
+        luaL_error(L, 
+                   "Expected a userdatum on the lua stack when invoking native method: '%s'", 
+                   m.get_name().to_string().c_str());
+
+        assert(false);
+    }
+
+    rttr::variant& ud       = *(rttr::variant*)lua_touserdata(L, 1);
+    rttr::variant result    = m.invoke(ud);
+
+    if (!result.is_valid())
+    {
+        luaL_error(L, "Failed to invoke native method: '%s'", m.get_name().to_string().c_str());
+        assert(false);
+    }
+
+    return 0;
+}
+
+int IndexUserDatum(lua_State* L)
+{
+   const char* typeName = (const char*)lua_tostring(L, lua_upvalueindex(1));
+   rttr::type typeInfo = rttr::type::get_by_name(typeName);
+
+   if (!lua_isuserdata(L, 1))
+   {
+       luaL_error(L, "Expected a userdatum on the lua stack when indexing type: '%s'", typeName);
+       assert(false);
+   }
+
+   if (!lua_isstring(L, -1))
+   {
+       luaL_error(L, "Expected a name of a native property or method when indexing native type: '%s'", typeName);
+       assert(false);
+   }
+
+   const char* fieldName = (const char*)lua_tostring(L, -1);
+   rttr::method m = typeInfo.get_method(fieldName);
+
+   if (m.is_valid())
+   {
+       //m.invoke(ud)
+       void* methodUD = lua_newuserdata(L, sizeof(rttr::method));
+       new (methodUD) rttr::method(m);
+       lua_pushcclosure(L, InvokeFuncOnUserDatum, 1);
+       return 1;
+   }
+
+   return 0;
+}
+
 void MGEDemo::_initializeLua()
 {
     lua_newtable(_luaState);
@@ -210,11 +273,16 @@ void MGEDemo::_initializeLua()
     {
         if (classToRegister.is_class())
         {
+            const std::string sTypeName = classToRegister.get_name().to_string();
+            const char* typeName = sTypeName.c_str();
+
+            printf("%s\n", typeName);
+
             lua_settop(_luaState, 0);
 
             lua_newtable(_luaState);
             lua_pushvalue(_luaState, -1);
-            lua_setglobal(_luaState, classToRegister.get_name().to_string().c_str());
+            lua_setglobal(_luaState, typeName);
 
             lua_pushlightuserdata(_luaState, (void*)&classToRegister);
             lua_pushcclosure(_luaState, CreateUserDatum, 1);
@@ -224,6 +292,11 @@ void MGEDemo::_initializeLua()
             luaL_newmetatable(_luaState, MetaTableName(classToRegister).c_str());
             lua_pushstring(_luaState, "__gc");
             lua_pushcfunction(_luaState, DestroyUserDatum);
+            lua_settable(_luaState, -3);
+
+            lua_pushstring(_luaState, "__index");
+            lua_pushstring(_luaState, typeName);
+            lua_pushcclosure(_luaState, IndexUserDatum, 1);
             lua_settable(_luaState, -3);
         }
     }
