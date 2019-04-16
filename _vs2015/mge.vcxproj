@@ -179,6 +179,7 @@
     <ClInclude Include="..\src\mge\core\GameObject.hpp" />
     <ClInclude Include="..\src\mge\core\Light.hpp" />
     <ClInclude Include="..\src\mge\core\Lua\LuaHelper.h" />
+    <ClInclude Include="..\src\mge\core\Lua\LuaRegistration.hpp" />
     <ClInclude Include="..\src\mge\core\Lua\LuaStack.h" />
     <ClInclude Include="..\src\mge\core\Lua\LuaState.h" />
     <ClInclude Include="..\src\mge\core\Lua\MetatableHelper.h" />

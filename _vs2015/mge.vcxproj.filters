@@ -106,6 +106,9 @@
     <ClInclude Include="..\src\mge\core\Lua\LuaHelper.h">
       <Filter>MGE Source files\mge\core\Lua</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\mge\core\Lua\LuaRegistration.hpp">
+      <Filter>MGE Source files\mge\core\Lua</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
